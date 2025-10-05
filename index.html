@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Correcteur de Grammaire Française</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 16px;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #results {
+      margin-top: 20px;
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .error {
+      color: #e74c3c;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📝 Correcteur de Grammaire Française</h1>
+  <p>Collez votre texte ci-dessous :</p>
+  <textarea id="inputText" placeholder="Écrivez votre texte ici..."></textarea><br><br>
+  <button onclick="checkGrammar()">Vérifier</button>
+
+  <div id="results"></div>
+
+  <script>
+    async function checkGrammar() {
+      const text = document.getElementById("inputText").value;
+      const response = await fetch("https://api.languagetoolplus.com/v2/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `text=${encodeURIComponent(text)}&language=fr`
+      });
+
+      const data = await response.json();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      if (data.matches.length === 0) {
+        resultsDiv.innerHTML = "<p>✅ Aucun problème détecté !</p>";
+      } else {
+        data.matches.forEach(match => {
+          const error = document.createElement("div");
+          error.className = "error";
+          error.innerHTML = `
+            <strong>Erreur :</strong> ${match.message}<br>
+            <strong>Mot :</strong> "${text.substring(match.offset, match.offset + match.length)}"<br>
+            <strong>Suggestion :</strong> ${match.replacements.map(r => r.value).join(", ")}
+          `;
+          resultsDiv.appendChild(error);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
